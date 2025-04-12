@@ -1,0 +1,258 @@
+Aquí está el texto corregido y legible:
+
+---
+
+### **📌 REQUERIMIENTOS FUNCIONALES (CORE)**
+#### **1. Módulo de Pacientes**
+- **RF-01**: Registro completo  
+  - **Campos obligatorios**:  
+    ```sql
+    nombre VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    genero ENUM('M','F','Otro') NOT NULL,
+    telefono VARCHAR(15) NOT NULL UNIQUE,
+    email VARCHAR(100) UNIQUE,
+    direccion TEXT,
+    alergias TEXT DEFAULT 'Ninguna',
+    tipo_sangre ENUM('A+','A-','B+','B-','AB+','AB-','O+','O-')
+    ```
+  - **Validaciones**:  
+    - Teléfono con formato internacional (+51 123456789)  
+    - Email válido (regex: `^[^\s@]+@[^\s@]+\.[^\s@]+$`)  
+
+- **RF-02**: Historial médico  
+  - **Estructura por consulta**:  
+    ```json
+    {
+      "fecha": "2023-11-20T14:30:00Z",
+      "motivo": "Dolor de cabeza",
+      "diagnostico": "Migraña crónica",
+      "tratamiento": [
+        { "medicamento": "Ibuprofeno", "dosis": "400mg", "frecuencia": "Cada 8h" }
+      ],
+      "archivos": ["analisis_sangre.pdf"]
+    }
+    ```
+
+#### **2. Módulo de Citas**
+- **RF-03**: Agendamiento  
+  - **Flujo**:  
+    1. Seleccionar especialidad (Cardiología, Pediatría, etc.)  
+    2. Elegir médico (filtrar por disponibilidad en calendario)  
+    3. Seleccionar fecha/hora (bloquear festivos)  
+    4. Confirmar con SMS/email (usar Twilio o SendGrid)  
+
+  - **Reglas de negocio**:  
+    - Horario laboral: L-V 8:00 - 18:00  
+    - Duración estándar: 30 minutos  
+    - Máximo 2 citas por paciente/día  
+
+#### **3. Módulo Médico**
+- **RF-04**: Consulta clínica  
+  - **Plantilla de nota médica**:  
+    ```markdown
+    ## Diagnóstico (CIE-10):
+    - G43.909: Migraña no especificada
+
+    ## Indicaciones:
+    - Reposo en habitación oscura
+    - Tomar Dipirona 500mg cada 8h por 3 días
+    - Control en 1 semana
+    ```
+  - **Firma electrónica**:  
+    - Requiere autenticación con token OTP enviado al móvil del médico.
+
+---
+
+### **⚙️ REQUERIMIENTOS TÉCNICOS**
+#### **1. Backend**
+- **RT-01**: API REST con endpoints:  
+  ```http
+  POST /api/pacientes       → Crear paciente
+  GET /api/pacientes?q=Juan → Buscar pacientes
+  POST /api/citas          → Agendar cita
+  GET /api/medicos/{id}/disponibilidad?fecha=2023-11-20 → Ver horarios libres
+  ```
+- **RT-02**: Autenticación JWT  
+  - Roles: `admin`, `medico`, `recepcion`  
+  - Permisos:  
+    - Recepción: NO puede ver historiales médicos completos  
+    - Médicos: NO pueden eliminar citas  
+
+#### **2. Frontend**
+- **RT-03**: Interfaz responsive (Bootstrap 5 o TailwindCSS)  
+  - **Vistas críticas**:  
+    1. `Login.vue`: Autenticación con validación en tiempo real  
+    2. `PacientesList.vue`: Paginación + filtros lado cliente  
+    3. `CalendarioCitas.vue`: Drag & drop de citas (usar FullCalendar)  
+
+#### **3. Base de Datos**
+- **RT-04**: Esquema relacional mínimo:  
+  ```mermaid
+  erDiagram
+    PACIENTE ||--o{ CITA : tiene
+    PACIENTE ||--o{ HISTORIAL : posee
+    MEDICO ||--o{ CITA : atiende
+    CITA {
+      int id PK
+      datetime fecha
+      varchar estado
+      int paciente_id FK
+      int medico_id FK
+    }
+  ```
+
+---
+
+### **🔐 REQUERIMIENTOS NO FUNCIONALES CRÍTICOS**
+1. **Seguridad**:  
+   - Cifrado AES-256 para datos sensibles (historiales)  
+   - Backup diario automático en AWS S3 (retención: 30 días)  
+
+2. **Rendimiento**:  
+   - Máximo 500ms de respuesta en búsquedas (indexar BD)  
+   - Cache de 5 minutos para listados de médicos  
+
+3. **Disponibilidad**:  
+   - SLA del 99.9% (uptime)  
+   - Balanceador de carga para picos de tráfico  
+
+---
+
+### **✅ CHECKLIST DE IMPLEMENTACIÓN**
+1. **Backend**:  
+   - [ ] Modelos Sequelize para Paciente, Cita, Médico  
+   - [ ] Middleware de autenticación por roles  
+   - [ ] Script de migración inicial (`npm run migrate`)  
+
+2. **Frontend**:  
+   - [ ] Formulario de pacientes con validación Yup  
+   - [ ] Calendario interactivo con time slots  
+
+3. **Despliegue**:  
+   - [ ] Dockerfile para backend (exponer puerto 3000)  
+   - [ ] Configurar CI/CD con GitHub Actions  
+
+---
+
+### **📜 REQUERIMIENTOS LEGALES (PERÚ)**
+1. Protección de Datos Personales (Ley N° 29733 - Ley de Protección de Datos Personales)
+   - **RL-01**: Consentimiento expreso  
+     Implementar checkbox obligatorio:  
+     "Autorizo el tratamiento de mis datos personales según Ley N° 29733 para fines médicos y administrativos"  
+     Registrar IP, fecha/hora de consentimiento.  
+
+   - **RL-02**: Derechos ARCO (Acceso, Rectificación, Cancelación, Oposición)  
+     Módulo para que pacientes soliciten:  
+     - Descarga de sus datos en PDF/JSON.  
+     - Eliminación de historial (excepto registros clínicos esenciales).  
+
+2. Historia Clínica Electrónica (Resolución Ministerial N° 546-2019/MINSA)  
+   - **RL-03**: Requisitos mínimos:  
+     - Conservación por 20 años desde última atención.  
+     - Firma digital con certificado de INFOCERT o OSE autorizado.  
+     - Integridad garantizada (hash SHA-256 para modificaciones).  
+
+3. Facturación Electrónica (Resolución de Superintendencia N° 097-2017/SUNAT)  
+   - **RL-04**: Comprobantes electrónicos:  
+     - Formato XML con estructura UBL 2.1.  
+     - Incluir en PDF:  
+       - Código de autorización SUNAT.  
+       - Leyenda: "Representación impresa de comprobante electrónico".  
+
+4. Seguridad Digital (Decreto Supremo N° 004-2019-JUS)  
+   - **RL-05**: Medidas obligatorias:  
+     - Cifrado TLS 1.2+ para transmisión de datos.  
+     - Registro de auditoría (logs) con:  
+       ```json
+       {
+         "usuario": "medico123",
+         "accion": "editó_historial",
+         "fecha": "2023-11-20T14:30:00-05:00",
+         "ip": "190.45.210.130"
+       }
+       ```
+
+---
+
+### **🏥 REQUERIMIENTOS ESPECÍFICOS PARA CLÍNICAS PERUANAS**
+1. Interoperabilidad (SIS, EsSalud, EPS)  
+   - **RF-06**: Formatos estándar:  
+     - HL7 FHIR para historiales clínicos.  
+     - Web Services SOAP para integración con:  
+       - Sistema de Referencias y Contrarreferencias.  
+       - Farmacia DIGEMID (validación de medicamentos).  
+
+2. Prescripción Electrónica (Directiva N° 101-MINSA/2018)  
+   - **RF-07**: Estructura obligatoria:  
+     ```xml
+     <prescripcion>
+       <medico colegiatura="12345-CPM"/>
+       <medicamento codigo="74281010" nombre="Paracetamol 500mg"/>
+       <posologia dosis="1 tableta" frecuencia="cada 8 horas"/>
+       <firma_digital>...</firma_digital>
+     </prescripcion>
+     ```
+
+---
+
+### **💻 IMPLEMENTACIÓN TÉCNICA CONFORME A LEY**
+1. Backend (Node.js + Express)  
+   ```javascript
+   // Middleware de validación SUNAT
+   app.post('/api/facturas', (req, res) => {
+     if (!req.body.emisor.ruc.match(/^10\d{8}$/)) {
+       return res.status(400).json({ error: "RUC inválido" });
+     }
+     // Generar XML UBL 2.1
+   });
+   ```
+
+2. Base de Datos (PostgreSQL)  
+   ```sql
+   CREATE TABLE pacientes (
+     id SERIAL PRIMARY KEY,
+     dni CHAR(8) UNIQUE NOT NULL,
+     datos_sensibles BYTEA, -- Cifrado con pgcrypto
+     consentimiento BOOLEAN DEFAULT FALSE,
+     fecha_eliminacion TIMESTAMP -- Para derecho al olvido
+   );
+   ```
+
+3. Frontend (React)  
+   ```jsx
+   // Componente de consentimiento
+   <Checkbox 
+     label="Autorizo tratamiento de datos según Ley N° 29733"
+     required
+     onChange={(e) => setConsent(e.target.checked)}
+   />
+   ```
+
+---
+
+### **✔️ CHECKLIST LEGAL OBLIGATORIO**
+- [ ] Registro en Registro Nacional de Protección de Datos Personales.  
+- [ ] Certificado digital para firma electrónica (Autoridad Certificadora Raíz ICP Perú).  
+- [ ] Contrato con Operador de Servicios Electrónicos para facturación.  
+- [ ] Política de seguridad informática documentada (ISO/IEC 27001).  
+
+---
+
+### **💡 RECOMENDACIONES CLAVE**
+- Asesoría especializada:  
+  Contratar abogado experto en Derecho Digital Médico (≈ S/ 150-300/hora).  
+- Software validado:  
+  Usar librerías certificadas por ONGEI para cifrado.  
+- Hosting local:  
+  Servidores físicos en Perú (o cloud con AWS Lima Region).  
+
+---
+
+### **📂 DOCUMENTACIÓN ADICIONAL REQUERIDA**
+- Anexo 1: Modelo de cláusula de consentimiento informado.  
+- Anexo 2: Flujo de atención según normativa MINSA.  
+- Anexo 3: Especificaciones técnicas para interoperabilidad con RENIEC.  
+
+--- 
