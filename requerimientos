@@ -43,16 +43,20 @@ Aquí está el texto corregido y legible:
     3. Seleccionar fecha/hora (bloquear festivos)  
     4. Confirmar con SMS/email (usar Twilio o SendGrid)  
 
-  - **Reglas de negocio**:  
+  - Reglas de negocio:  
     - Horario laboral: L-V 8:00 - 18:00  
     - Duración estándar: 30 minutos  
     - Máximo 2 citas por paciente/día  
 
-#### **3. Módulo Médico**
+3. Módulo Médico
 - **RF-04**: Consulta clínica  
-  - **Plantilla de nota médica**:  
-    ```markdown
-    ## Diagnóstico (CIE-10):
+  - Plantilla de nota médica:  
+    Datos del paciente
+    Motivo de consulta
+    Tiempo de enfermedad
+    t
+
+    Diagnóstico (CIE-10):
     - G43.909: Migraña no especificada
 
     ## Indicaciones:
