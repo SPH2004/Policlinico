@@ -1,0 +1,153 @@
+# REQUERIMIENTOS DETALLADOS - SISTEMA DE GESTIÓN CLÍNICA (ESCALABLE)
+# Versión: 1.0
+# Fecha: 2023-11-20
+
+=====================
+## 1. REQUERIMIENTOS FUNCIONALES
+=====================
+
+### 1.1 MÓDULO DE PACIENTES
+---------------------
+RF-001: Registro de pacientes
+  - Campos obligatorios:
+    * Nombres y apellidos (validación: solo caracteres)
+    * DNI (8 dígitos + validación RENIEC)
+    * Fecha nacimiento (formato DD/MM/YYYY)
+    * Género (M/F/Otros)
+    * Teléfono (9 dígitos + código país)
+    * Email (validación regex)
+    * Dirección (geolocalización opcional)
+    * Tipo sangre (A+/A-/B+/B-/etc.)
+    * Alergias (lista desplegable + campo abierto)
+    * Contacto emergencia (nombre + teléfono)
+  - Notas:
+    * Priorizar DNI sobre otros documentos
+    * Usar API RENIEC con límite 100 consultas/mes gratis
+
+RF-002: Historia clínica electrónica
+  - Estructura por consulta:
+    * Fecha/hora (autogenerado)
+    * Motivo consulta (texto + selección síntomas)
+    * Antecedentes relacionados
+    * Examen físico:
+      - TA, FC, FR, temperatura
+      - Peso, talla, IMC
+    * Diagnóstico (CIE-10 obligatorio)
+    * Tratamiento:
+      - Medicamentos (DIGEMID)
+      - Procedimientos
+      - Recomendaciones
+    * Archivos adjuntos (PDF/JPG max 10MB)
+  - Validaciones:
+    * Firmar digitalmente con certificado ICP Perú
+    * Log de cambios (quién/editó/qué)
+
+### 1.2 MÓDULO DE CITAS
+---------------------
+RF-003: Agendamiento
+  - Flujo:
+    1. Selección especialidad
+    2. Filtro por médico/disponibilidad
+    3. Selección fecha/hora
+    4. Confirmación (SMS/WhatsApp)
+  - Reglas:
+    * Horario L-V 8:00-18:00
+    * Bloquear feriados
+    * Límite 2 citas/paciente/día
+    * Cancelación hasta 24h antes
+
+RF-004: Telemedicina
+  - Integración Jitsi Meet
+  - Consentimiento digital previo
+  - Grabación de sesiones (opcional)
+
+### 1.3 MÓDULO MÉDICO
+---------------------
+RF-005: Prescripción electrónica
+  - Campos:
+    * Medicamento (DIGEMID)
+    * Dosis
+    * Frecuencia
+    * Duración
+  - Salida:
+    * PDF con QR
+    * XML para SUNAT
+
+=====================
+## 2. REQUERIMIENTOS NO FUNCIONALES
+=====================
+
+### 2.1 SEGURIDAD
+---------------------
+RNF-001: Cifrado
+  - En tránsito: TLS 1.3
+  - En reposo: AES-256 (PostgreSQL pgcrypto)
+
+RNF-002: Roles
+  - Administrador: Acceso total
+  - Médico: Solo sus pacientes
+  - Recepcionista: Sin historiales
+
+### 2.2 RENDIMIENTO
+---------------------
+RNF-003: Tiempos respuesta
+  - Búsquedas: <500ms
+  - Carga historial: <1s
+
+### 2.3 LEGALES (PERÚ)
+---------------------
+RNF-004: Ley 29733
+  - Consentimiento explícito
+  - Módulo ARCO
+
+RNF-005: Resolución 546-2019/MINSA
+  - Conservación 20 años
+  - Firma digital ICP Perú
+
+=====================
+## 3. TECNOLOGÍAS RECOMENDADAS
+=====================
+
+### 3.1 DESARROLLO
+---------------------
+- Frontend: React + TailwindCSS
+- Backend: Node.js/Express
+- BD: PostgreSQL
+- Hosting: AWS Lima (S3 para backups)
+
+### 3.2 INTEGRACIONES
+---------------------
+- RENIEC: ApisPeru (free tier)
+- SUNAT: Libreta electrónica
+- DIGEMID: WebService SOAP
+
+=====================
+## 4. ROADMAP PRIORIZADO
+=====================
+
+FASE 1 (0-6 meses):
+- MVP con pacientes y citas
+- Historial clínico básico
+- Hosting gratuito
+
+FASE 2 (6-12 meses):
+- Facturación SUNAT
+- Telemedicina Jitsi
+- API RENIEC
+
+FASE 3 (1-2 años):
+- IA diagnóstica (TensorFlow.js)
+- Mobile app (React Native)
+
+=====================
+## 5. RECOMENDACIONES CLAVE
+=====================
+
+1. Iniciar con especialidad específica (ej: pediatría)
+2. Usar plantillas admin médicas gratis (Tabler)
+3. Primeros clientes: clínicas pequeñas (2-3 médicos)
+4. Monetización:
+   - Freemium (hasta 50 pacientes)
+   - Plan básico: $20/mes
+
+# END OF DOCUMENT
