@@ -2,10 +2,10 @@ Aquí está el texto corregido y legible:
 
 ---
 
-### **📌 REQUERIMIENTOS FUNCIONALES (CORE)**
-#### **1. Módulo de Pacientes**
-- **RF-01**: Registro completo  
-  - **Campos obligatorios**:  
+📌 REQUERIMIENTOS FUNCIONALES (CORE)
+1. Módulo de Pacientes
+- RF-01: Registro completo  
+  - Campos obligatorios:  
     ```sql
     nombre VARCHAR(100) NOT NULL,
     apellidos VARCHAR(100) NOT NULL,
@@ -17,7 +17,7 @@ Aquí está el texto corregido y legible:
     alergias TEXT DEFAULT 'Ninguna',
     tipo_sangre ENUM('A+','A-','B+','B-','AB+','AB-','O+','O-')
     ```
-  - **Validaciones**:  
+  - Validaciones:  
     - Teléfono con formato internacional (+51 123456789)  
     - Email válido (regex: `^[^\s@]+@[^\s@]+\.[^\s@]+$`)  
 
